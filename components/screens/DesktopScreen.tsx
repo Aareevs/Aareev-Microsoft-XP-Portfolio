@@ -334,6 +334,7 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
                   }
               }
           }}
+          onCloseWindow={(id) => closeWindow(id)}
           onToggleWelcome={() => setShowWelcome(prev => !prev)}
           onToggleCrt={toggleCrt}
           isCrtEnabled={isCrtEnabled}

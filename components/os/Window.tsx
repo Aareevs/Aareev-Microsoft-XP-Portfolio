@@ -56,10 +56,9 @@ const Window: React.FC<WindowProps> = ({
         top: isMaximized ? 0 : '10%',
         left: isMaximized ? 0 : '15%'
       }}
-      style={{ zIndex, position: 'absolute', display: isMinimized ? 'none' : 'block' }}
+      style={{ zIndex, position: 'absolute', display: isMinimized ? 'none' : 'block', maxHeight: 'calc(100% - 34px)', maxWidth: 'calc(100% - 16px)' }}
       className={`
-        flex flex-col rounded-tl-[8px] rounded-tr-[8px] overflow-hidden shadow-2xl 
-        ${isMaximized ? 'rounded-none' : 'border border-[#0058ee]'}
+        flex flex-col outline-none focus:outline-none bg-transparent shadow-none rounded-none overflow-visible
       `}
       onMouseDown={onFocus}
     >
@@ -146,7 +145,7 @@ const Window: React.FC<WindowProps> = ({
       )}
 
       {/* Content */}
-      <div className="flex-1 bg-white overflow-hidden relative flex flex-col">
+      <div className="flex-1 bg-transparent overflow-auto relative flex flex-col">
         {children}
       </div>
     </motion.div>

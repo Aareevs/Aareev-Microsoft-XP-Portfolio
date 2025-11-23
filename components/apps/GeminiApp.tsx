@@ -34,7 +34,8 @@ const GeminiApp = () => {
     setIsLoading(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY;
+      const ai = new GoogleGenAI({ apiKey });
       
       const chat = ai.chats.create({
         model: 'gemini-2.5-flash',

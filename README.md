@@ -25,7 +25,7 @@ Windows XP–inspired portfolio desktop with draggable windows, start menu, task
 Prerequisites: Node.js
 
 1. Install dependencies: `npm install`
-2. Optional: set `GEMINI_API_KEY` in [.env.local](.env.local)
+2. Optional: set `VITE_GEMINI_API_KEY` in [.env.local](.env.local)
 3. Start dev server: `npm run dev`
 4. Open `http://localhost:3000` (or the prompted port)
 

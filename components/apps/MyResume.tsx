@@ -1,6 +1,6 @@
 
 
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { ZoomIn, Save, Printer, Mail, MapPin, User, Briefcase, Globe } from 'lucide-react';
 import { TEXT, ASSETS, COLORS } from '../../constants';
 
@@ -41,6 +41,44 @@ const JobItem = ({ role, company, date, children }: { role: string, company: str
 );
 
 const MyResume = () => {
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const paperRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+  const [hover, setHover] = useState(false);
+  const [pageSize, setPageSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+
+  const computeFitScale = () => {
+    if (!viewportRef.current || !paperRef.current) return 1;
+    const styles = window.getComputedStyle(viewportRef.current);
+    const padX = parseFloat(styles.paddingLeft) + parseFloat(styles.paddingRight);
+    const padY = parseFloat(styles.paddingTop) + parseFloat(styles.paddingBottom);
+    const vw = viewportRef.current.clientWidth - padX;
+    const vh = viewportRef.current.clientHeight - padY;
+    const pw = pageSize.w || paperRef.current.offsetWidth;
+    const ph = pageSize.h || paperRef.current.offsetHeight;
+    const fit = Math.min(vw / pw, vh / ph);
+    return Math.min(1, Math.max(0.1, fit));
+  };
+
+  const handleZoomClick = () => {
+    const fit = computeFitScale();
+    setScale(prev => (prev === 1 ? fit : 1));
+  };
+
+  React.useLayoutEffect(() => {
+    const applySizes = () => {
+      if (paperRef.current) {
+        const rect = paperRef.current.getBoundingClientRect();
+        setPageSize({ w: paperRef.current.offsetWidth, h: paperRef.current.offsetHeight });
+      }
+    };
+    const applyFit = () => setScale(computeFitScale());
+    applySizes();
+    applyFit();
+    window.addEventListener('resize', applyFit);
+    return () => window.removeEventListener('resize', applyFit);
+  }, []);
+
   return (
     <div className="flex flex-col h-full bg-[#525252] font-sans select-text">
       {/* Custom Toolbar for Resume App */}
@@ -53,10 +91,16 @@ const MyResume = () => {
       </div>
 
       {/* Content Area - Gray Background */}
-      <div className="flex-1 overflow-y-auto p-8 flex justify-center bg-[#525252]">
+      <div ref={viewportRef} className={`flex-1 ${scale === 1 ? 'overflow-y-auto' : 'overflow-hidden'} p-8 flex justify-center bg-[#525252]`}>
         
         {/* A4 Paper */}
-        <div className="w-[210mm] min-h-[297mm] bg-white shadow-[0_0_15px_rgba(0,0,0,0.5)] flex flex-col md:flex-row overflow-hidden relative">
+        <div 
+          ref={paperRef}
+          className="w-[210mm] min-h-[297mm] bg-white shadow-[0_0_15px_rgba(0,0,0,0.5)] flex flex-col md:flex-row overflow-hidden relative"
+          style={{ transform: `scale(${scale})`, transformOrigin: 'top center', margin: '0 auto' }}
+          onMouseEnter={() => setHover(true)}
+          onMouseLeave={() => setHover(false)}
+        >
             
             {/* Left Sidebar (Black) */}
             <div className="w-full md:w-[240px] bg-[#1a1a1a] text-gray-300 p-6 flex flex-col shrink-0 border-r border-gray-200">
@@ -168,9 +212,17 @@ const MyResume = () => {
                 </ResumeSection>
 
             </div>
+        {/* Zoom Overlay */}
+        <button 
+          onClick={handleZoomClick}
+          className={`absolute top-3 left-3 bg-[#ece9d8] border border-[#aca899] rounded-full w-9 h-9 flex items-center justify-center transition-opacity ${hover ? 'opacity-100' : 'opacity-0'}`}
+          aria-label="Zoom"
+        >
+          <ZoomIn size={18} className="text-[#0a246a]" />
+        </button>
         </div>
         
-        <div className="h-10"></div> {/* Bottom spacer */}
+        
       </div>
     </div>
   );

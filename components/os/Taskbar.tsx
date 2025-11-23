@@ -8,6 +8,7 @@ interface TaskbarProps {
   isStartOpen: boolean;
   openWindows: XPWindow[];
   onWindowClick: (id: string) => void;
+  onCloseWindow: (id: string) => void;
   onToggleWelcome: () => void;
   onToggleCrt: () => void;
   isCrtEnabled: boolean;
@@ -18,6 +19,7 @@ const Taskbar: React.FC<TaskbarProps> = ({
   isStartOpen, 
   openWindows, 
   onWindowClick,
+  onCloseWindow,
   onToggleWelcome,
   onToggleCrt,
   isCrtEnabled
@@ -109,16 +111,23 @@ const Taskbar: React.FC<TaskbarProps> = ({
          {openWindows.map((win) => (
              <div 
                 key={win.id}
-                onClick={() => onWindowClick(win.id)}
                 className={`
-                   w-[160px] h-full rounded-[2px] px-2 flex items-center gap-2 cursor-pointer
+                   w-[180px] h-full rounded-[2px] px-2 flex items-center gap-2 cursor-pointer relative
                    ${!win.isMinimized 
-                      ? 'bg-[#1e50ad] shadow-[inset_1px_2px_4px_rgba(0,0,0,0.4)] border border-[#103475]' // Active/Pressed
+                      ? 'bg-[#1e50ad] shadow-[inset_1px_2px_4px_rgba(0,0,0,0.4)] border border-[#103475]'
                       : 'bg-[#3c81f3] hover:bg-[#5392f5] shadow-[1px_1px_2px_rgba(0,0,0,0.5)] border border-[#103475]'} 
                 `}
+                onClick={() => onWindowClick(win.id)}
              >
                 <img src={win.icon} alt="" className="w-4 h-4" />
-                <span className="text-white text-xs truncate drop-shadow-md">{win.title}</span>
+                <span className="text-white text-xs truncate drop-shadow-md flex-1">{win.title}</span>
+                <button
+                  className="ml-auto w-4 h-4 rounded-[2px] bg-[#e81123] flex items-center justify-center hover:bg-[#f4606c] active:bg-[#bf0e1d]"
+                  onClick={(e) => { e.stopPropagation(); onCloseWindow(win.id); }}
+                  title="Close"
+                >
+                  <span className="text-white text-[10px] leading-none">×</span>
+                </button>
              </div>
          ))}
       </div>
