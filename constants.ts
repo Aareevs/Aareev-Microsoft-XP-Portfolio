@@ -75,12 +75,16 @@ export const XP_ICONS = {
   obs: 'https://icons.iconarchive.com/icons/papirus-team/papirus-apps/512/obs-studio-icon.png',
   antigravity: 'https://pngdownloads.wordpress.com/wp-content/uploads/2025/11/google-antigravity-logo-icon-png.jpg',
   wordpress: 'https://icons.iconarchive.com/icons/uiconstock/socialmedia/512/Wordpress-icon.png',
-  vscode: 'https://icons.iconarchive.com/icons/papirus-team/papirus-apps/512/visual-studio-code-icon.png'
+  vscode: 'https://icons.iconarchive.com/icons/papirus-team/papirus-apps/512/visual-studio-code-icon.png',
+  spotify: 'https://upload.wikimedia.org/wikipedia/commons/8/84/Spotify_icon.svg',
+  androidStudio: 'https://cdn.simpleicons.org/androidstudio/3DDC84',
+  vercel: 'https://cdn.simpleicons.org/vercel/white',
+  supabase: 'https://cdn.simpleicons.org/supabase/3ECF8E'
 };
 
 export const TEXT = {
   name: 'Aareev Srinivasan',
-  role: 'Visual Designer',
+  role: 'Full-Stack Developer',
   brand: 'Portfolio',
 };
 import type { MusicTrack } from './types';

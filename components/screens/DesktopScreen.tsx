@@ -15,6 +15,14 @@ import GeminiApp from '../apps/GeminiApp';
 import MyResume from '../apps/MyResume';
 import ContactMe from '../apps/ContactMe';
 import MusicPlayer from '../apps/MusicPlayer';
+import TerminalApp from '../apps/TerminalApp';
+import VaaniSetu from '../apps/VaaniSetu';
+import SpotifyApp from '../apps/SpotifyApp';
+
+const STANDARD_WINDOW_WIDTH = 700;
+const STANDARD_WINDOW_HEIGHT = 500;
+const VAANI_SETU_WIDTH = 1200;
+const VAANI_SETU_HEIGHT = 900;
 
 interface DesktopScreenProps {
   onRestart: () => void;
@@ -28,6 +36,7 @@ interface CustomWindowProps {
   initialHeight?: string | number;
   initialTop?: string | number;
   initialLeft?: string | number;
+  initiallyMaximized?: boolean;
 }
 
 const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCrtEnabled, toggleCrt }) => {
@@ -64,8 +73,30 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
     const existingWindow = windows.find(w => w.id === id);
 
     if (existingWindow) {
-      // If minimized, restore it
-      if (existingWindow.isMinimized) {
+      // Check if dimensions have changed
+      const dimensionsChanged =
+        (customProps.initialWidth && customProps.initialWidth !== existingWindow.initialWidth) ||
+        (customProps.initialHeight && customProps.initialHeight !== existingWindow.initialHeight);
+
+      if (dimensionsChanged) {
+        // Close and recreate window with new dimensions
+        setWindows(prev => prev.filter(w => w.id !== id));
+        // Create new window immediately
+        const newWindow: XPWindow & CustomWindowProps = {
+          id,
+          title,
+          icon,
+          type,
+          isOpen: true,
+          isMinimized: false,
+          zIndex: nextZIndex,
+          content,
+          ...customProps
+        };
+        setWindows(prev => [...prev, newWindow]);
+        setNextZIndex(prev => prev + 1);
+      } else if (existingWindow.isMinimized) {
+        // If minimized, restore it
         setWindows(prev => prev.map(w => w.id === id ? { ...w, isMinimized: false, zIndex: nextZIndex } : w));
         setNextZIndex(prev => prev + 1);
       } else {
@@ -91,13 +122,28 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
     setIsStartOpen(false);
   };
 
-  const handleOpenWebLink = (url: string, title: string) => {
+  const handleOpenWebLink = (url: string, title: string, width: number = STANDARD_WINDOW_WIDTH, height: number = STANDARD_WINDOW_HEIGHT) => {
+    if (title === 'Vaani Setu') {
+      openWindow(
+        'vaani-setu',
+        'Vaani Setu',
+        XP_ICONS.projects,
+        'browser',
+        <VaaniSetu />,
+        true,
+        { initialWidth: VAANI_SETU_WIDTH, initialHeight: VAANI_SETU_HEIGHT, initiallyMaximized: true }
+      );
+      return;
+    }
+
     openWindow(
       `web-${title.toLowerCase().replace(/\s+/g, '-')}`,
       title,
       XP_ICONS.projects,
       'browser',
-      <iframe src={url} className="w-full h-full border-none" title={title} />
+      <iframe src={url} className="w-full h-full border-none" title={title} />,
+      false,
+      { initialWidth: width, initialHeight: height }
     );
   };
 
@@ -124,16 +170,27 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
         openWindow('gemini', 'Gemini', XP_ICONS.gemini, 'browser', <GeminiApp />);
         break;
       case 'projects':
-        openWindow('projects', 'My Projects', XP_ICONS.projects, 'browser', <MyProjects onOpenProject={handleOpenWebLink} />);
+        openWindow('projects', 'My Projects', XP_ICONS.projects, 'browser', <MyProjects onOpenProject={handleOpenWebLink} />, false, { initialWidth: 1100, initialHeight: 750 });
         break;
       case 'aboutme':
         openWindow('aboutme', 'About Me', XP_ICONS.aboutMe, 'explorer', <AboutMe />);
         break;
       case 'resume':
-        openWindow('resume', 'My Resume', XP_ICONS.resume, 'system', <MyResume />, true, { initialWidth: 880, initialHeight: 1100, initialTop: '2%' });
+        openWindow('resume', 'My Resume', XP_ICONS.resume, 'system', <MyResume />, true, { initialWidth: 820, initialHeight: 700, initialTop: '5%' });
         break;
       case 'contact':
         openWindow('contact', 'Contact Me', XP_ICONS.contact, 'system', <ContactMe />, true);
+        break;
+      case 'terminal':
+        openWindow(
+          'terminal',
+          'Terminal',
+          XP_ICONS.cmd,
+          'system',
+          <TerminalApp onExit={() => closeWindow('terminal')} />,
+          true,
+          { initialWidth: 760, initialHeight: 500, initialTop: '10%', initialLeft: '18%' }
+        );
         break;
       case 'music':
         openWindow(
@@ -147,7 +204,26 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
         );
         break;
       case 'vaani-setu':
-        handleOpenWebLink('https://vaani-setu-website.vercel.app/', 'Vaani Setu');
+        openWindow(
+          'vaani-setu',
+          'Vaani Setu',
+          XP_ICONS.projects,
+          'browser',
+          <VaaniSetu />,
+          true,
+          { initialWidth: VAANI_SETU_WIDTH, initialHeight: VAANI_SETU_HEIGHT, initiallyMaximized: true }
+        );
+        break;
+      case 'spotify':
+        openWindow(
+          'spotify',
+          'Spotify',
+            XP_ICONS.spotify,
+            'system',
+            <SpotifyApp />,
+            true,
+            { initialWidth: 850, initialHeight: 550 }
+          );
         break;
       case 'game-smashkarts':
         openWindow(
@@ -218,7 +294,7 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
                 className="w-12 h-12 object-contain drop-shadow-md pointer-events-none"
               />
             }
-            onClick={() => openWindow('resume', 'My Resume', XP_ICONS.resume, 'system', <MyResume />, true, { initialWidth: 880, initialHeight: 1100, initialTop: '2%' })}
+            onClick={() => openWindow('resume', 'My Resume', XP_ICONS.resume, 'system', <MyResume />, true, { initialWidth: 820, initialHeight: 700, initialTop: '5%' })}
           />
 
           <DesktopIcon
@@ -230,7 +306,20 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
                 className="w-12 h-12 object-contain drop-shadow-md pointer-events-none"
               />
             }
-            onClick={() => openWindow('projects', 'My Projects', XP_ICONS.projects, 'browser', <MyProjects onOpenProject={handleOpenWebLink} />)}
+            onDoubleClick={() => openWindow('projects', 'My Projects', XP_ICONS.projects, 'browser', <MyProjects onOpenProject={handleOpenWebLink} />, false, { initialWidth: 1100, initialHeight: 750 })}
+            onClick={() => openWindow('projects', 'My Projects', XP_ICONS.projects, 'browser', <MyProjects onOpenProject={handleOpenWebLink} />, false, { initialWidth: 1100, initialHeight: 750 })}
+          />
+
+          <DesktopIcon
+            label="Spotify"
+            icon={
+              <img
+                src={XP_ICONS.spotify}
+                alt="Spotify"
+                className="w-12 h-12 object-contain drop-shadow-md pointer-events-none"
+              />
+            }
+            onClick={() => openWindow('spotify', 'Spotify', XP_ICONS.spotify, 'system', <SpotifyApp />, true, { initialWidth: 850, initialHeight: 550 })}
           />
 
           <DesktopIcon
@@ -265,9 +354,12 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
                     win.id.startsWith('web-') ? 'https://' + win.title.toLowerCase().replace(/\s/g, '') + '.com' :
                       win.title
               }
-              hideToolbar={win.id === 'resume' || win.id === 'contact' || win.id === 'game-smashkarts' || win.id === 'music'}
+              hideToolbar={win.id === 'resume' || win.id === 'contact' || win.id === 'game-smashkarts' || win.id === 'music' || win.id === 'terminal'}
               initialWidth={win.initialWidth}
               initialHeight={win.initialHeight}
+              initialTop={win.initialTop}
+              initialLeft={win.initialLeft}
+              initiallyMaximized={win.initiallyMaximized}
               isMinimized={win.isMinimized}
             >
               {win.content}
@@ -298,7 +390,7 @@ const DesktopScreen: React.FC<DesktopScreenProps> = ({ onRestart, onLogOut, isCr
                   <p>Custom-built to showcase my work and attention to detail.</p>
                   <div className="mt-2 flex gap-2 text-blue-700 underline cursor-pointer">
                     <span onClick={() => { setShowWelcome(false); openWindow('aboutme', 'About Me', XP_ICONS.aboutMe, 'explorer', <AboutMe />); }}>About Me</span>
-                    <span onClick={() => { setShowWelcome(false); openWindow('projects', 'My Projects', XP_ICONS.projects, 'browser', <MyProjects onOpenProject={handleOpenWebLink} />); }}>My Projects</span>
+                    <span onClick={() => { setShowWelcome(false); openWindow('projects', 'My Projects', XP_ICONS.projects, 'browser', <MyProjects onOpenProject={handleOpenWebLink} />, false, { initialWidth: 1100, initialHeight: 750 }); }}>My Projects</span>
                   </div>
                 </div>
               </div>

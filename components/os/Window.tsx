@@ -1,6 +1,6 @@
 
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, useDragControls } from 'framer-motion';
 import { X, Minus, Square, ArrowLeft, ArrowRight, Search, ChevronDown } from 'lucide-react';
 import { XP_ICONS } from '../../constants';
@@ -20,6 +20,7 @@ interface WindowProps {
   initialHeight?: string | number;
   initialTop?: string | number;
   initialLeft?: string | number;
+  initiallyMaximized?: boolean;
   isMinimized?: boolean;
 }
 
@@ -38,13 +39,69 @@ const Window: React.FC<WindowProps> = ({
   initialHeight = '600px',
   initialTop = '10%',
   initialLeft = '15%',
+  initiallyMaximized = false,
   isMinimized = false
 }) => {
-  const [isMaximized, setIsMaximized] = useState(false);
+  const [isMaximized, setIsMaximized] = useState(initiallyMaximized);
   const dragControls = useDragControls();
+  const windowRef = useRef<HTMLDivElement>(null);
+
+  // Convert initial dimensions to numbers if they are strings containing 'px'
+  const parseDimension = (dim: string | number) => {
+    if (typeof dim === 'number') return dim;
+    const parsed = parseInt(dim.toString().replace('px', ''), 10);
+    return isNaN(parsed) ? 600 : parsed; // fallback
+  };
+
+  const [customWidth, setCustomWidth] = useState<number>(parseDimension(initialWidth));
+  const [customHeight, setCustomHeight] = useState<number>(parseDimension(initialHeight));
+  const [isResizing, setIsResizing] = useState(false);
+
+  // Convert numbers to pixel strings for framer-motion position
+  const top = typeof initialTop === 'number' ? `${initialTop}px` : initialTop;
+  const left = typeof initialLeft === 'number' ? `${initialLeft}px` : initialLeft;
+
+  // Resize logic
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      if (!isResizing || !windowRef.current) return;
+      
+      const rect = windowRef.current.getBoundingClientRect();
+      const newWidth = Math.max(300, e.clientX - rect.left);
+      const newHeight = Math.max(200, e.clientY - rect.top);
+      
+      setCustomWidth(newWidth);
+      setCustomHeight(newHeight);
+    };
+
+    const handlePointerUp = () => {
+      if (isResizing) {
+        setIsResizing(false);
+        document.body.style.cursor = 'default';
+        document.body.style.userSelect = 'auto'; // Re-enable selection
+      }
+    };
+
+    if (isResizing) {
+      window.addEventListener('pointermove', handlePointerMove);
+      window.addEventListener('pointerup', handlePointerUp);
+      document.body.style.cursor = 'se-resize';
+      document.body.style.userSelect = 'none'; // Prevent selection while dragging
+    }
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+      if (isResizing) {
+        document.body.style.cursor = 'default';
+        document.body.style.userSelect = 'auto';
+      }
+    };
+  }, [isResizing]);
 
   return (
     <motion.div
+      ref={windowRef}
       drag={!isMaximized}
       dragMomentum={false}
       dragListener={false} // Disables dragging from anywhere except controls
@@ -53,16 +110,24 @@ const Window: React.FC<WindowProps> = ({
       animate={{
         scale: 1,
         opacity: 1,
-        width: isMaximized ? '100%' : initialWidth,
-        height: isMaximized ? '100%' : initialHeight,
+        width: isMaximized ? '100%' : `${customWidth}px`,
+        height: isMaximized ? '100%' : `${customHeight}px`,
         x: isMaximized ? 0 : undefined,
         y: isMaximized ? 0 : undefined,
-        top: isMaximized ? 0 : initialTop,
-        left: isMaximized ? 0 : initialLeft
+        top: isMaximized ? 0 : top,
+        left: isMaximized ? 0 : left
       }}
-      style={{ zIndex, position: 'absolute', display: isMinimized ? 'none' : 'block', maxHeight: 'calc(100% - 34px)', maxWidth: 'calc(100% - 16px)' }}
+      style={{
+        zIndex,
+        position: 'absolute',
+        display: isMinimized ? 'none' : 'flex',
+        flexDirection: 'column',
+        // Remove constraints to ensure exact sizing as requested
+        maxHeight: 'none',
+        maxWidth: 'none'
+      }}
       className={`
-        flex flex-col outline-none focus:outline-none bg-transparent shadow-none rounded-none overflow-visible
+        outline-none focus:outline-none bg-transparent shadow-none rounded-none overflow-hidden
       `}
       onMouseDown={onFocus}
     >
@@ -149,9 +214,35 @@ const Window: React.FC<WindowProps> = ({
       )}
 
       {/* Content */}
-      <div className="flex-1 bg-transparent overflow-auto relative flex flex-col">
+      <div className="flex-1 bg-transparent overflow-hidden relative flex flex-col min-h-0">
         {children}
       </div>
+
+      {/* Resize Handle */}
+      {!isMaximized && (
+        <div
+          className="absolute bottom-0 right-0 w-5 h-5 cursor-se-resize z-[9999] flex items-end justify-end p-[2px]"
+          style={{ touchAction: 'none' }}
+          onPointerDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            onFocus();
+            setIsResizing(true);
+          }}
+        >
+          {/* XP style resize grabber dots */}
+          <svg width="12" height="12" viewBox="0 0 12 12" xmlns="http://www.w3.org/2000/svg">
+            <g fill="#aabce2">
+              <rect x="10" y="10" width="2" height="2" />
+              <rect x="6" y="10" width="2" height="2" />
+              <rect x="10" y="6" width="2" height="2" />
+              <rect x="2" y="10" width="2" height="2" />
+              <rect x="6" y="6" width="2" height="2" />
+              <rect x="10" y="2" width="2" height="2" />
+            </g>
+          </svg>
+        </div>
+      )}
     </motion.div>
   );
 };

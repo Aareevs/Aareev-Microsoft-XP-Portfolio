@@ -150,7 +150,7 @@ const StartMenu: React.FC<StartMenuProps> = ({ onItemClick, onShutdownClick }) =
         <div className="flex-1 bg-white flex flex-col py-2 pl-1 pr-1 min-h-[360px]">
           <StartMenuItem 
             icon={XP_ICONS.projects} 
-            label="Internet Explorer" 
+            label="Projects" 
             subLabel="View my work"
             isBold 
             onClick={() => handleClick('projects')}
@@ -170,9 +170,10 @@ const StartMenu: React.FC<StartMenuProps> = ({ onItemClick, onShutdownClick }) =
           
           <div className="my-1 mx-2 border-b border-gray-200" />
 
-          <StartMenuItem icon={XP_ICONS.mediaPlayer} label="Windows Media Player" />
+          <StartMenuItem icon={XP_ICONS.cmd} label="Terminal" onClick={() => handleClick('terminal')} />
           <StartMenuItem icon={XP_ICONS.paint} label="Paint" />
           <StartMenuItem icon={XP_ICONS.music} label="Music Player" onClick={() => handleClick('music')} />
+          <StartMenuItem icon={XP_ICONS.spotify} label="Spotify" onClick={() => handleClick('spotify')} />
 
           {/* All Programs Button Area */}
           <div className="mt-auto flex justify-center pt-2 pb-1 relative">
@@ -263,7 +264,7 @@ const StartMenu: React.FC<StartMenuProps> = ({ onItemClick, onShutdownClick }) =
 
                     <AllProgramsItem icon={XP_ICONS.projects} label="Internet Explorer" onMouseEnter={() => setActiveProgramFolder(null)} />
                     <AllProgramsItem icon={XP_ICONS.contact} label="Outlook Express" onMouseEnter={() => setActiveProgramFolder(null)} />
-                    <AllProgramsItem icon={XP_ICONS.mediaPlayer} label="Windows Media Player" onMouseEnter={() => setActiveProgramFolder(null)} />
+                    <AllProgramsItem icon={XP_ICONS.cmd} label="Terminal" onMouseEnter={() => setActiveProgramFolder(null)} onClick={() => handleClick('terminal')} />
                     <AllProgramsItem icon={XP_ICONS.msn} label="Windows Messenger" onMouseEnter={() => setActiveProgramFolder(null)} />
                     <AllProgramsItem icon={XP_ICONS.notepad} label="Notepad" onMouseEnter={() => setActiveProgramFolder(null)} />
                     <AllProgramsItem icon={XP_ICONS.calc} label="Calculator" onMouseEnter={() => setActiveProgramFolder(null)} />
@@ -313,7 +314,7 @@ const StartMenu: React.FC<StartMenuProps> = ({ onItemClick, onShutdownClick }) =
            
            <div className="my-1 mx-2 border-b border-[#aebcd8]" />
            
-           <StartMenuRightItem icon={XP_ICONS.cmd} label="Command Prompt" />
+           <StartMenuRightItem icon={XP_ICONS.cmd} label="Command Prompt" onClick={() => handleClick('terminal')} />
            <StartMenuRightItem icon={XP_ICONS.imageViewer} label="Image Viewer" />
            <StartMenuRightItem icon={XP_ICONS.resume} label="My Resume" onClick={() => handleClick('resume')} />
         </div>
